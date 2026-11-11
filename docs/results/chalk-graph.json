@@ -1,0 +1,38 @@
+{
+  "root": "chalk@4.1.2",
+  "nodes": [
+    "ansi-styles@4.3.0",
+    "chalk@4.1.2",
+    "color-convert@2.0.1",
+    "color-name@1.1.4",
+    "has-flag@4.0.0",
+    "supports-color@7.2.0"
+  ],
+  "edges": [
+    {
+      "from": "ansi-styles@4.3.0",
+      "to": "color-convert@2.0.1",
+      "range": "^2.0.1"
+    },
+    {
+      "from": "chalk@4.1.2",
+      "to": "ansi-styles@4.3.0",
+      "range": "^4.1.0"
+    },
+    {
+      "from": "chalk@4.1.2",
+      "to": "supports-color@7.2.0",
+      "range": "^7.1.0"
+    },
+    {
+      "from": "color-convert@2.0.1",
+      "to": "color-name@1.1.4",
+      "range": "~1.1.4"
+    },
+    {
+      "from": "supports-color@7.2.0",
+      "to": "has-flag@4.0.0",
+      "range": "^4.0.0"
+    }
+  ]
+}

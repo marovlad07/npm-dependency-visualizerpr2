@@ -1,0 +1,14 @@
+{
+  "root": "is-odd@3.0.1",
+  "nodes": [
+    "is-number@6.0.0",
+    "is-odd@3.0.1"
+  ],
+  "edges": [
+    {
+      "from": "is-odd@3.0.1",
+      "to": "is-number@6.0.0",
+      "range": "^6.0.0"
+    }
+  ]
+}

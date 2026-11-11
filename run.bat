@@ -8,11 +8,11 @@ if exist ".tools\python-path.txt" (
     goto configured
 )
 where py >nul 2>nul
-if not errorlevel 1 (
-    py -3 -m npm_graph %*
-    exit /b %errorlevel%
-)
+if not errorlevel 1 goto launcher
 python -m npm_graph %*
+exit /b %errorlevel%
+:launcher
+py -3 -m npm_graph %*
 exit /b %errorlevel%
 :configured
 "%PYTHON_EXE%" -m npm_graph %*

@@ -13,6 +13,7 @@ from .graph import (
 from .registry import Registry
 from .semver import Version
 from .test_repository import TestRepository
+from .visualization import dot_text, open_image, render
 
 PACKAGE_PATTERN = r"(?:@[a-z0-9._-]+/)?[a-z0-9][a-z0-9._-]*"
 TEST_PATTERN = r"[A-Z]+"
@@ -31,12 +32,19 @@ def parser():
     )
     result.add_argument("--test", action="store_true", help="Тестовый JSON")
     result.add_argument(
-        "--mode", choices=["config", "direct", "graph", "reverse"],
+        "--mode", choices=[
+            "config", "direct", "graph", "reverse", "dot", "visualize"
+        ],
         default="graph",
     )
     result.add_argument(
         "--target", help="Узел имя@версия для обратных зависимостей"
     )
+    result.add_argument("--output", default="generated/dependencies.png",
+                        help="Путь к изображению .png или .svg")
+    result.add_argument("--dot", help="Путь к программе Graphviz dot")
+    result.add_argument("--no-open", action="store_true",
+                        help="Сохранить изображение без открытия")
     return result
 
 
@@ -51,8 +59,13 @@ def validate(args):
     if args.test:
         if not Path(args.repository).is_file():
             raise AppError("Не найден файл тестового репозитория")
-        return
-    url = urlsplit(args.repository)
+    else:
+        validate_url(args.repository)
+
+
+def validate_url(repository):
+    """Require a valid HTTP(S) registry address without credentials."""
+    url = urlsplit(repository)
     if url.scheme not in ("http", "https") or not url.hostname:
         raise AppError("Репозиторий должен быть HTTP(S) URL")
     if url.username or url.password or url.query or url.fragment:
@@ -82,7 +95,22 @@ def execute(args):
             graph = complete_test_graph(source)
         print_reverse(graph, args.target or package.label)
         return
-    print(json.dumps(graph_data(graph, package), ensure_ascii=False, indent=2))
+    output_graph(args, graph, package)
+
+
+def output_graph(args, graph, package):
+    """Choose machine-readable output, DOT source or rendered image."""
+    if args.mode == "graph":
+        print(json.dumps(graph_data(graph, package), ensure_ascii=False,
+                         indent=2))
+    elif args.mode == "dot":
+        print(dot_text(graph, package), end="")
+    else:
+        path = render(graph, package, args.output, args.dot)
+        print(f"Изображение: {path}")
+        print(f"Graphviz DOT: {path.with_suffix('.dot')}")
+        if not args.no_open:
+            open_image(path)
 
 
 def print_reverse(graph, label):

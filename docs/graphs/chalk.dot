@@ -1,0 +1,21 @@
+digraph dependencies {
+  graph [rankdir=LR, bgcolor="#f8fafc", pad=0.4, nodesep=0.5,
+         dpi=144,
+         ranksep=0.9, fontname="Arial", fontsize=18,
+         label="chalk@4.1.2", labelloc=t];
+  node [shape=box, style="rounded,filled", fontname="Arial",
+        fontsize=12, color="#cbd5e1", fillcolor="white",
+        margin=0.18];
+  edge [color="#64748b", fontname="Arial", fontsize=10];
+  "ansi-styles@4.3.0" [];
+  "chalk@4.1.2" [fillcolor="#dbeafe", color="#2563eb"];
+  "color-convert@2.0.1" [];
+  "color-name@1.1.4" [];
+  "has-flag@4.0.0" [];
+  "supports-color@7.2.0" [];
+  "ansi-styles@4.3.0" -> "color-convert@2.0.1" [label="^2.0.1"];
+  "chalk@4.1.2" -> "ansi-styles@4.3.0" [label="^4.1.0"];
+  "chalk@4.1.2" -> "supports-color@7.2.0" [label="^7.1.0"];
+  "color-convert@2.0.1" -> "color-name@1.1.4" [label="~1.1.4"];
+  "supports-color@7.2.0" -> "has-flag@4.0.0" [label="^4.0.0"];
+}

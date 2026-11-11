@@ -1,0 +1,4 @@
+reference-is-odd@1.0.0 <reference-project>
+`-- is-odd@3.0.1
+  `-- is-number@6.0.0
+

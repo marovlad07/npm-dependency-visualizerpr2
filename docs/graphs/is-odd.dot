@@ -1,0 +1,13 @@
+digraph dependencies {
+  graph [rankdir=LR, bgcolor="#f8fafc", pad=0.4, nodesep=0.5,
+         dpi=144,
+         ranksep=0.9, fontname="Arial", fontsize=18,
+         label="is-odd@3.0.1", labelloc=t];
+  node [shape=box, style="rounded,filled", fontname="Arial",
+        fontsize=12, color="#cbd5e1", fillcolor="white",
+        margin=0.18];
+  edge [color="#64748b", fontname="Arial", fontsize=10];
+  "is-number@6.0.0" [];
+  "is-odd@3.0.1" [fillcolor="#dbeafe", color="#2563eb"];
+  "is-odd@3.0.1" -> "is-number@6.0.0" [label="^6.0.0"];
+}

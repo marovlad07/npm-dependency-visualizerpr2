@@ -6,6 +6,9 @@ from functools import total_ordering
 
 from .errors import AppError
 
+VERSION_PARTS = 3
+MAJOR_PRECISION = 1
+
 VERSION_RE = re.compile(
     r"v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
@@ -28,7 +31,7 @@ class Version:
         if not match:
             raise AppError(f"Некорректная SemVer-версия: {text}")
         pre = tuple((match[4] or "").split(".")) if match[4] else ()
-        if any(x.isdigit() and len(x) > 1 and x[0] == "0" for x in pre):
+        if any(x.isdigit() and x.startswith("0") and x != "0" for x in pre):
             raise AppError(f"Нули в prerelease-идентификаторе: {text}")
         return cls(tuple(int(match[i]) for i in (1, 2, 3)), pre)
 
@@ -38,15 +41,12 @@ class Version:
             return self.core < other.core
         if not self.pre or not other.pre:
             return bool(self.pre) and not other.pre
-        for left, right in zip(self.pre, other.pre):
-            if left == right:
-                continue
-            if left.isdigit() and right.isdigit():
-                return int(left) < int(right)
-            if left.isdigit() != right.isdigit():
-                return left.isdigit()
-            return left < right
-        return len(self.pre) < len(other.pre)
+        return prerelease_key(self.pre) < prerelease_key(other.pre)
+
+
+def prerelease_key(parts):
+    """Sort numeric identifiers before strings, then compare tuple prefixes."""
+    return tuple((0, int(x)) if x.isdigit() else (1, x) for x in parts)
 
 
 def partial(text):
@@ -54,7 +54,7 @@ def partial(text):
     if VERSION_RE.fullmatch(text):
         return Version.parse(text), 3
     parts = text.removeprefix("v").split(".")
-    if len(parts) > 3:
+    if len(parts) > VERSION_PARTS:
         raise AppError(f"Неподдерживаемый диапазон: {text}")
     numbers = []
     wildcard = False
@@ -85,14 +85,10 @@ def expand(token):
     operator, text = match[1] or "=", match[2]
     version, count = partial(text)
     if not count:
-        return [("<", Version((0, 0, 0)))] if operator in ("<", ">") else []
+        return wildcard_comparison(operator)
     if operator in ("^", "~"):
-        precision = 1 if count == 1 else 2
-        if operator == "^":
-            nonzero = next((i + 1 for i, n in enumerate(version.core) if n), 3)
-            precision = min(count, nonzero)
-        return [(">=", version), ("<", next_bound(version, precision))]
-    if count == 3:
+        return compatible_range(operator, version, count)
+    if count == VERSION_PARTS:
         return [(operator, version)]
     if operator == "=":
         return [(">=", version), ("<", next_bound(version, count))]
@@ -103,6 +99,20 @@ def expand(token):
     return [(operator, version)]
 
 
+def wildcard_comparison(operator):
+    """An unbounded wildcard allows all stable versions except strict >/<."""
+    return [("<", Version((0, 0, 0)))] if operator in ("<", ">") else []
+
+
+def compatible_range(operator, version, count):
+    """Compute caret or tilde bounds, including zero-major partials."""
+    precision = 1 if count == MAJOR_PRECISION else 2
+    if operator == "^":
+        nonzero = next((i + 1 for i, n in enumerate(version.core) if n), 3)
+        precision = min(count, nonzero)
+    return [(">=", version), ("<", next_bound(version, precision))]
+
+
 def comparator_set(text):
     """Parse an AND group, including inclusive hyphen ranges."""
     hyphen = re.fullmatch(r"(\S+)\s+-\s+(\S+)", text.strip())
@@ -111,7 +121,7 @@ def comparator_set(text):
         upper, count = partial(hyphen[2])
         result = [(">=", lower)]
         if count:
-            result.append(("<=", upper) if count == 3 else (
+            result.append(("<=", upper) if count == VERSION_PARTS else (
                 "<", next_bound(upper, count)
             ))
         return result
@@ -135,7 +145,8 @@ def satisfies(version, groups):
         allowed = not version.pre or any(
             target.pre and target.core == version.core for _, target in group
         )
-        if allowed and all(compare(version, op, target) for op, target in group):
+        matches = all(compare(version, op, target) for op, target in group)
+        if allowed and matches:
             return True
     return False
 

@@ -1,0 +1,33 @@
+{
+  "checked_at_utc": "2026-11-11T10:53:20.440417+00:00",
+  "npm_version": "11.6.2",
+  "results": [
+    {
+      "package": "is-odd@3.0.1",
+      "nodes": 2,
+      "edges": 1,
+      "npm_nodes": 2,
+      "npm_edges": 1,
+      "nodes_match": true,
+      "edges_match": true
+    },
+    {
+      "package": "is-even@1.0.0",
+      "nodes": 5,
+      "edges": 4,
+      "npm_nodes": 5,
+      "npm_edges": 4,
+      "nodes_match": true,
+      "edges_match": true
+    },
+    {
+      "package": "chalk@4.1.2",
+      "nodes": 6,
+      "edges": 5,
+      "npm_nodes": 6,
+      "npm_edges": 5,
+      "nodes_match": true,
+      "edges_match": true
+    }
+  ]
+}

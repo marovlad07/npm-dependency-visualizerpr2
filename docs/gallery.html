@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Графы npm — вариант 14</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f1f5f9; color: #0f172a;
+    font: 16px/1.6 "Segoe UI", Arial, sans-serif; }
+  main { max-width: 1200px; margin: 56px auto; padding: 0 24px; }
+  .eyebrow { color: #2563eb; font-weight: 600; letter-spacing: .08em; }
+  h1 { font-size: 40px; line-height: 1.2; margin: 16px 0; }
+  p { color: #475569; }
+  section { background: white; border: 1px solid #e2e8f0;
+    border-radius: 18px; padding: 28px; margin: 24px 0; }
+  h2 { margin: 0; font-size: 23px; }
+  .meta { color: #64748b; margin: 6px 0 24px; }
+  img { max-width: 100%; height: auto; display: block; margin: auto; }
+  .badge { font-size: 13px; background: #dcfce7; color: #166534;
+    padding: 4px 10px; border-radius: 99px; display: inline-block; }
+  footer { color: #64748b; font-size: 14px; margin-top: 32px; }
+</style>
+<main>
+  <div class="eyebrow">КОНФИГУРАЦИОННОЕ УПРАВЛЕНИЕ · ПР №2</div>
+  <h1>Графы зависимостей npm</h1>
+  <p>ИКБО-71-25 · Вариант 14 · Python + Graphviz</p>
+  <p>Стрелка направлена от пакета к его зависимости.
+    На ребре указан диапазон версий из манифеста, в узле — выбранная версия.</p>
+  <section>
+    <h2>is-odd@3.0.1</h2>
+    <div class="meta">2 узла · 1 связь · простая зависимость</div>
+    <img src="../generated/is-odd.svg" alt="is-odd зависит от is-number">
+    <span class="badge">Совпадает с npm ls</span>
+  </section>
+  <section>
+    <h2>is-even@1.0.0</h2>
+    <div class="meta">5 узлов · 4 связи · транзитивная цепочка</div>
+    <img src="../generated/is-even.svg" alt="Цепочка зависимостей is-even">
+    <span class="badge">Совпадает с npm ls</span>
+  </section>
+  <section>
+    <h2>chalk@4.1.2</h2>
+    <div class="meta">6 узлов · 5 связей · разветвленный граф</div>
+    <img src="../generated/chalk.svg" alt="Две ветви зависимостей chalk">
+    <span class="badge">Совпадает с npm ls</span>
+  </section>
+  <footer>Проверено 11 ноября 2026 года. Данные: registry.npmjs.org.
+    Сравнение: npm 11.6.2, npm ls --all.
+    Для повторного создания изображений запустите demo_all.bat.</footer>
+</main>
+</html>
