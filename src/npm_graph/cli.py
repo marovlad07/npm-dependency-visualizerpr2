@@ -7,6 +7,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from .errors import AppError
+from .registry import Registry
+from .semver import Version
 
 PACKAGE_PATTERN = r"(?:@[a-z0-9._-]+/)?[a-z0-9][a-z0-9._-]*"
 TEST_PATTERN = r"[A-Z]+"
@@ -24,7 +26,7 @@ def parser():
         help="URL npm-реестра либо путь к тестовому JSON",
     )
     result.add_argument("--test", action="store_true", help="Тестовый JSON")
-    result.add_argument("--mode", choices=["config"], default="config")
+    result.add_argument("--mode", choices=["config", "direct"], default="config")
     return result
 
 
@@ -35,6 +37,7 @@ def validate(args):
         raise AppError("Некорректное имя пакета для выбранного режима")
     if not args.version.strip() or any(c.isspace() for c in args.version):
         raise AppError("Версия должна быть непустой и без пробелов")
+    Version.parse(args.version)
     if args.test:
         if not Path(args.repository).is_file():
             raise AppError("Не найден файл тестового репозитория")
@@ -52,6 +55,18 @@ def validate(args):
 
 def execute(args):
     """Print all stage-one user parameters as key-value pairs."""
+    if args.mode == "direct":
+        if args.test:
+            raise AppError("Тестовый источник будет добавлен на этапе 3")
+        source = Registry(args.repository)
+        package = source.resolve(args.package, args.version)
+        dependencies = source.dependencies(package)
+        print(f"Прямые зависимости {package.label}:")
+        for name, specification in sorted(dependencies.items()):
+            print(f"{name}: {specification}")
+        if not dependencies:
+            print("(нет зависимостей)")
+        return
     for key, value in vars(args).items():
         print(f"{key}={json.dumps(value, ensure_ascii=False)}")
 
