@@ -56,3 +56,28 @@ def graph_data(graph, root):
             for child, specification in sorted(graph[parent].items())
         ],
     }
+
+
+def reverse_dependencies(graph, target):
+    """Find direct and transitive dependents by BFS on reversed edges."""
+    if target not in graph:
+        raise AppError(f"В построенном графе нет {target.label}")
+    reversed_graph = {node: set() for node in graph}
+    for parent, dependencies in graph.items():
+        for child in dependencies:
+            reversed_graph[child].add(parent)
+    direct = sorted(reversed_graph[target] - {target})
+    transitive = [node for node in bfs(target, reversed_graph.get)
+                  if node != target]
+    return direct, transitive
+
+
+def complete_test_graph(source):
+    """Include all offline packages so disconnected dependents are visible."""
+    graph = {}
+    for name, versions in source.packages.items():
+        for version in versions:
+            root = source.resolve(name, version)
+            if root not in graph:
+                graph.update(build_graph(source, root))
+    return graph

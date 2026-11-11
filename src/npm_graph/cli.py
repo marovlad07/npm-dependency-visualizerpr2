@@ -7,7 +7,9 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from .errors import AppError
-from .graph import build_graph, graph_data
+from .graph import (
+    build_graph, complete_test_graph, graph_data, reverse_dependencies,
+)
 from .registry import Registry
 from .semver import Version
 from .test_repository import TestRepository
@@ -29,7 +31,11 @@ def parser():
     )
     result.add_argument("--test", action="store_true", help="Тестовый JSON")
     result.add_argument(
-        "--mode", choices=["config", "direct", "graph"], default="graph"
+        "--mode", choices=["config", "direct", "graph", "reverse"],
+        default="graph",
+    )
+    result.add_argument(
+        "--target", help="Узел имя@версия для обратных зависимостей"
     )
     return result
 
@@ -71,7 +77,23 @@ def execute(args):
         print_direct(source, package)
         return
     graph = build_graph(source, package)
+    if args.mode == "reverse":
+        if args.test:
+            graph = complete_test_graph(source)
+        print_reverse(graph, args.target or package.label)
+        return
     print(json.dumps(graph_data(graph, package), ensure_ascii=False, indent=2))
+
+
+def print_reverse(graph, label):
+    """Display dependents of a specific version rather than mixing versions."""
+    matches = [node for node in graph if node.label == label]
+    if not matches:
+        raise AppError(f"Нет узла {label!r}; нужен формат имя@версия")
+    direct, transitive = reverse_dependencies(graph, matches[0])
+    print(f"Обратные зависимости {label}:")
+    print("Прямые: " + (", ".join(x.label for x in direct) or "нет"))
+    print("Все (BFS): " + (", ".join(x.label for x in transitive) or "нет"))
 
 
 def print_direct(source, package):
