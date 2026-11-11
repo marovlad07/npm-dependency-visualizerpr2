@@ -7,8 +7,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from .errors import AppError
+from .graph import build_graph, graph_data
 from .registry import Registry
 from .semver import Version
+from .test_repository import TestRepository
 
 PACKAGE_PATTERN = r"(?:@[a-z0-9._-]+/)?[a-z0-9][a-z0-9._-]*"
 TEST_PATTERN = r"[A-Z]+"
@@ -26,7 +28,9 @@ def parser():
         help="URL npm-реестра либо путь к тестовому JSON",
     )
     result.add_argument("--test", action="store_true", help="Тестовый JSON")
-    result.add_argument("--mode", choices=["config", "direct"], default="config")
+    result.add_argument(
+        "--mode", choices=["config", "direct", "graph"], default="graph"
+    )
     return result
 
 
@@ -54,21 +58,30 @@ def validate(args):
 
 
 def execute(args):
-    """Print all stage-one user parameters as key-value pairs."""
-    if args.mode == "direct":
-        if args.test:
-            raise AppError("Тестовый источник будет добавлен на этапе 3")
-        source = Registry(args.repository)
-        package = source.resolve(args.package, args.version)
-        dependencies = source.dependencies(package)
-        print(f"Прямые зависимости {package.label}:")
-        for name, specification in sorted(dependencies.items()):
-            print(f"{name}: {specification}")
-        if not dependencies:
-            print("(нет зависимостей)")
+    """Run the selected stage against a real or an offline repository."""
+    if args.mode == "config":
+        for key, value in vars(args).items():
+            print(f"{key}={json.dumps(value, ensure_ascii=False)}")
         return
-    for key, value in vars(args).items():
-        print(f"{key}={json.dumps(value, ensure_ascii=False)}")
+    source = TestRepository(args.repository) if args.test else Registry(
+        args.repository
+    )
+    package = source.resolve(args.package, args.version)
+    if args.mode == "direct":
+        print_direct(source, package)
+        return
+    graph = build_graph(source, package)
+    print(json.dumps(graph_data(graph, package), ensure_ascii=False, indent=2))
+
+
+def print_direct(source, package):
+    """Display exact root-version dependency declarations for stage two."""
+    dependencies = source.dependencies(package)
+    print(f"Прямые зависимости {package.label}:")
+    for name, specification in sorted(dependencies.items()):
+        print(f"{name}: {specification}")
+    if not dependencies:
+        print("(нет зависимостей)")
 
 
 def main(argv=None):

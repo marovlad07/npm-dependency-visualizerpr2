@@ -14,7 +14,8 @@ class CliTests(unittest.TestCase):
         """The prototype prints the selected package and version."""
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            main(["--package", "is-odd", "--version", "3.0.1"])
+            main(["--package", "is-odd", "--version", "3.0.1",
+                  "--mode", "config"])
         self.assertIn('package="is-odd"', output.getvalue())
         self.assertIn('version="3.0.1"', output.getvalue())
 
